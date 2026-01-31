@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
+fallback_version = "0.1.dev0"
+version_file = "truffile/_version.py"
+
+[project]
+name = "truffile"
+dynamic = ["version"]
+description = "truffile the TruffleOS SDK - Connect and deploy apps to Truffle devices"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+dependencies = [
+    "grpcio>=1.60.0",
+    "protobuf>=4.25.0",
+    "httpx>=0.27.0",
+    "pyyaml>=6.0",
+    "platformdirs>=3.10.0",
+    "websockets>=12.0",
+    "zeroconf>=0.131.0",
+]
+
+[project.scripts]
+truffile = "truffile.cli:main"
+truffleinferproxy = "truffile.infer.proxy:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "grpcio-tools>=1.60.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["truffile*", "truffle*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.pyi", "py.typed"]
