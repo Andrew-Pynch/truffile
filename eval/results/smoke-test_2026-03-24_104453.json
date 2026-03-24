@@ -1,0 +1,102 @@
+{
+  "tag": "smoke-test",
+  "timestamp": "2026-03-24T15:44:24.112594+00:00",
+  "test_paper_count": 1,
+  "search": {
+    "known_item": [
+      {
+        "paper_id": "1706.03762",
+        "query": "ti:\"Attention Is All You Need\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 0.2,
+        "num_results": 5,
+        "latency_s": 0.49425646700547077
+      }
+    ],
+    "topic_queries": [
+      {
+        "query": "transformer attention mechanism",
+        "description": "Should find the foundational transformer and BERT papers",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.5841102309932467
+      },
+      {
+        "query": "image classification deep learning residual",
+        "description": "Should find ResNet and ViT papers",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.28962232201593
+      },
+      {
+        "query": "large language model survey",
+        "description": "Should find the LLM survey paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.1016615979897324
+      },
+      {
+        "query": "few-shot learning language model scaling",
+        "description": "Should find the GPT-3 paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.494135461980477
+      },
+      {
+        "query": "diffusion generative model denoising",
+        "description": "Should find the Karras diffusion paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.5105271020147484
+      },
+      {
+        "query": "open source language model reinforcement learning",
+        "description": "Should find DeepSeek-V3.2 (tests recency)",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.657047501008492
+      },
+      {
+        "query": "autonomous agent algorithm discovery",
+        "description": "Should find AlphaResearch (tests recency)",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.1127712749876082
+      },
+      {
+        "query": "LLM agent planning memory tool",
+        "description": "Should find the autonomous agents survey",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 1.1460743850038853
+      }
+    ],
+    "aggregate": {
+      "known_item_hit_rate": 1.0,
+      "known_item_mean_latency_s": 0.49425646700547077,
+      "topic_mean_precision_at_5": 0.0,
+      "topic_mean_recall": 0.0,
+      "topic_mean_latency_s": 1.361993734499265,
+      "total_queries": 9,
+      "total_errors": 0
+    }
+  },
+  "duration_s": 29.33
+}

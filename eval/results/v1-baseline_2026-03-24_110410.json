@@ -1,0 +1,304 @@
+{
+  "tag": "v1-baseline",
+  "timestamp": "2026-03-24T16:02:26.204702+00:00",
+  "test_paper_count": 10,
+  "search": {
+    "known_item": [
+      {
+        "paper_id": "1706.03762",
+        "query": "ti:\"Attention Is All You Need\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 0.2,
+        "num_results": 5,
+        "latency_s": 0.23178194000502117
+      },
+      {
+        "paper_id": "1810.04805",
+        "query": "ti:\"BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 1.0,
+        "num_results": 1,
+        "latency_s": 0.28714467998361215
+      },
+      {
+        "paper_id": "2005.14165",
+        "query": "ti:\"Language Models are Few-Shot Learners\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 0.2,
+        "num_results": 5,
+        "latency_s": 0.37603969598421827
+      },
+      {
+        "paper_id": "2010.11929",
+        "query": "ti:\"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 1.0,
+        "num_results": 1,
+        "latency_s": 0.4935827190056443
+      },
+      {
+        "paper_id": "2512.02556",
+        "query": "ti:\"DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 1.0,
+        "num_results": 1,
+        "latency_s": 0.30603887999313883
+      },
+      {
+        "paper_id": "2511.08522",
+        "query": "ti:\"AlphaResearch: Accelerating New Algorithm Discovery with Language Models\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 1.0,
+        "num_results": 1,
+        "latency_s": 0.2534695490030572
+      },
+      {
+        "paper_id": "1512.03385",
+        "query": "ti:\"Deep Residual Learning for Image Recognition\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 1.0,
+        "num_results": 1,
+        "latency_s": 0.36588205001316965
+      },
+      {
+        "paper_id": "2207.00747",
+        "query": "ti:\"Elucidating the Design Space of Diffusion-Based Generative Models\"",
+        "status": "success",
+        "found": false,
+        "precision_at_5": 0.0,
+        "num_results": 1,
+        "latency_s": 3.21860032400582
+      },
+      {
+        "paper_id": "2303.18223",
+        "query": "ti:\"A Survey of Large Language Models\"",
+        "status": "success",
+        "found": true,
+        "precision_at_5": 0.2,
+        "num_results": 5,
+        "latency_s": 0.48638608600595035
+      },
+      {
+        "paper_id": "2308.10620",
+        "query": "ti:\"A Survey on Large Language Model based Autonomous Agents\"",
+        "status": "success",
+        "found": false,
+        "precision_at_5": 0.0,
+        "num_results": 1,
+        "latency_s": 0.5782419960014522
+      }
+    ],
+    "topic_queries": [
+      {
+        "query": "transformer attention mechanism",
+        "description": "Should find the foundational transformer and BERT papers",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.15315337301581167
+      },
+      {
+        "query": "image classification deep learning residual",
+        "description": "Should find ResNet and ViT papers",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.19574485102202743
+      },
+      {
+        "query": "large language model survey",
+        "description": "Should find the LLM survey paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.19240536500001326
+      },
+      {
+        "query": "few-shot learning language model scaling",
+        "description": "Should find the GPT-3 paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.3080498439958319
+      },
+      {
+        "query": "diffusion generative model denoising",
+        "description": "Should find the Karras diffusion paper",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.17614543699892238
+      },
+      {
+        "query": "open source language model reinforcement learning",
+        "description": "Should find DeepSeek-V3.2 (tests recency)",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.1656875159824267
+      },
+      {
+        "query": "autonomous agent algorithm discovery",
+        "description": "Should find AlphaResearch (tests recency)",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.22947448198101483
+      },
+      {
+        "query": "LLM agent planning memory tool",
+        "description": "Should find the autonomous agents survey",
+        "status": "success",
+        "precision_at_5": 0.0,
+        "recall": 0.0,
+        "num_results": 10,
+        "latency_s": 0.19011754498933442
+      }
+    ],
+    "aggregate": {
+      "known_item_hit_rate": 0.8,
+      "known_item_mean_latency_s": 0.6597167920001084,
+      "topic_mean_precision_at_5": 0.0,
+      "topic_mean_recall": 0.0,
+      "topic_mean_latency_s": 0.20134730162317283,
+      "total_queries": 18,
+      "total_errors": 0
+    }
+  },
+  "extraction": {
+    "per_paper": [
+      {
+        "paper_id": "1706.03762",
+        "paper_type": "landmark",
+        "download_status": "success",
+        "read_status": "success",
+        "download_latency_s": 1.488745081005618,
+        "read_latency_s": 0.00017169999773614109,
+        "char_count": 39799,
+        "char_count_score": 1.0,
+        "keyword_score": 1.0,
+        "section_score": 1.0
+      },
+      {
+        "paper_id": "1810.04805",
+        "paper_type": "landmark",
+        "download_status": "success",
+        "read_status": "success",
+        "download_latency_s": 1.4255205889930949,
+        "read_latency_s": 0.00016756300465203822,
+        "char_count": 64320,
+        "char_count_score": 1.0,
+        "keyword_score": 1.0,
+        "section_score": 1.0
+      },
+      {
+        "paper_id": "2005.14165",
+        "paper_type": "landmark",
+        "download_status": "error",
+        "error": "Error: HTTP Error 429: Unknown Error",
+        "download_latency_s": 0.35906303898082115
+      },
+      {
+        "paper_id": "2010.11929",
+        "paper_type": "landmark",
+        "download_status": "success",
+        "read_status": "success",
+        "download_latency_s": 1.7600505560112651,
+        "read_latency_s": 0.00018914398970082402,
+        "char_count": 67544,
+        "char_count_score": 1.0,
+        "keyword_score": 0.8571428571428571,
+        "section_score": 0.4
+      },
+      {
+        "paper_id": "2512.02556",
+        "paper_type": "recent",
+        "download_status": "error",
+        "error": "Error: HTTP Error 429: Unknown Error",
+        "download_latency_s": 0.6291607390157878
+      },
+      {
+        "paper_id": "2511.08522",
+        "paper_type": "recent",
+        "download_status": "error",
+        "error": "Error: HTTP Error 429: Unknown Error",
+        "download_latency_s": 0.5660627719771583
+      },
+      {
+        "paper_id": "1512.03385",
+        "paper_type": "math_heavy",
+        "download_status": "success",
+        "read_status": "success",
+        "download_latency_s": 1.9274829399946611,
+        "read_latency_s": 0.00023321600747294724,
+        "char_count": 59508,
+        "char_count_score": 1.0,
+        "keyword_score": 0.8571428571428571,
+        "section_score": 1.0
+      },
+      {
+        "paper_id": "2207.00747",
+        "paper_type": "math_heavy",
+        "download_status": "error",
+        "error": "Error: HTTP Error 429: Unknown Error",
+        "download_latency_s": 0.5835881480015814
+      },
+      {
+        "paper_id": "2303.18223",
+        "paper_type": "survey",
+        "download_status": "success",
+        "read_status": "success",
+        "download_latency_s": 6.198926973971538,
+        "read_latency_s": 0.0011026490246877074,
+        "char_count": 863537,
+        "char_count_score": 1.0,
+        "keyword_score": 1.0,
+        "section_score": 1.0
+      },
+      {
+        "paper_id": "2308.10620",
+        "paper_type": "survey",
+        "download_status": "error",
+        "error": "Error: HTTP Error 429: Unknown Error",
+        "download_latency_s": 0.4570171700033825
+      }
+    ],
+    "aggregate": {
+      "success_rate": 0.5,
+      "mean_keyword_score": 0.9428571428571428,
+      "mean_section_score": 0.8800000000000001,
+      "mean_char_count": 218941.6,
+      "mean_char_count_score": 1.0,
+      "mean_download_latency_s": 2.5601452279952355,
+      "total_papers": 10,
+      "total_errors": 5
+    }
+  },
+  "bg_worker": {
+    "verify_ok": true,
+    "verify_message": "ArXiv background configured with 3 interest(s).",
+    "empty_verify_fails": true,
+    "empty_returns_no_interests_error": true,
+    "run1_has_content": true,
+    "run1_count": 3,
+    "run1_error": null,
+    "run2_count": 3,
+    "dedup_correct": true,
+    "relevance_score": 0.6666666666666666
+  },
+  "duration_s": 104.69
+}
