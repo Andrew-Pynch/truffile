@@ -805,25 +805,30 @@ async def cmd_delete(args, storage: StorageService) -> int:
                 print(f"     {C.DIM}{desc}{C.RESET}")
         print()
 
-        try:
-            choice = input(f"Select apps to delete (e.g. 1,3,5 or 'all'): ").strip()
-        except (KeyboardInterrupt, EOFError):
-            print()
-            return 0
-
-        if not choice:
-            return 0
-
-        if choice.lower() == "all":
-            to_delete = list(range(len(all_apps)))
-        else:
+        def parse_selection(text):
+            """Parse 'all' or comma/space-separated numbers into 0-based indices. Returns None on failure."""
+            if text.lower() == "all":
+                return list(range(len(all_apps)))
             try:
-                to_delete = [int(x.strip()) - 1 for x in choice.split(",")]
-                for idx in to_delete:
-                    if idx < 0 or idx >= len(all_apps):
-                        error(f"Invalid selection: {idx + 1}")
-                        return 1
+                indices = [int(x.strip()) - 1 for x in text.replace(" ", ",").split(",") if x.strip()]
+                if indices and all(0 <= i < len(all_apps) for i in indices):
+                    return indices
             except ValueError:
+                pass
+            return None
+
+        to_delete = parse_selection(" ".join(args.targets)) if args.targets else None
+
+        if to_delete is None:
+            try:
+                choice = input(f"Select apps to delete (e.g. 1,3,5 or 'all'): ").strip()
+            except (KeyboardInterrupt, EOFError):
+                print()
+                return 0
+            if not choice:
+                return 0
+            to_delete = parse_selection(choice)
+            if to_delete is None:
                 error("Invalid input")
                 return 1
 
@@ -2400,7 +2405,7 @@ def print_help():
     print(f"  {C.BLUE}create{C.RESET} [name]           Create a new app scaffold")
     print(f"  {C.BLUE}deploy{C.RESET} [path]            Deploy an app (reads type from truffile.yaml)")
     print(f"  {C.BLUE}validate{C.RESET} [path]          Validate app config and files")
-    print(f"  {C.BLUE}delete{C.RESET}                    Delete installed apps from device")
+    print(f"  {C.BLUE}delete{C.RESET} [all | 1 2 ...]     Delete installed apps from device")
     print(f"  {C.BLUE}list{C.RESET} <apps|devices>      List installed apps or devices")
     print(f"  {C.BLUE}models{C.RESET}                    List models on your Truffle")
     print(f"  {C.BLUE}chat{C.RESET}                     Chat on your Truffle (REPL by default)")
@@ -2458,6 +2463,7 @@ def main() -> int:
     p_validate.add_argument("path", nargs="?", default=".")
 
     p_delete = subparsers.add_parser("delete", add_help=False)
+    p_delete.add_argument("targets", nargs="*", default=[])
 
     p_list = subparsers.add_parser("list", add_help=False)
     p_list.add_argument("what", choices=["apps", "devices"], nargs="?")
