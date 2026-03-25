@@ -68,6 +68,11 @@ def verify() -> int:
 def _cleanup() -> None:
     global _worker
     _worker = None
+    # Close the persistent event loop used by alphaxiv async calls
+    from arxiv_bg_worker import _loop as _bg_loop
+
+    if _bg_loop is not None and not _bg_loop.is_closed():
+        _bg_loop.close()
 
 
 if __name__ == "__main__":

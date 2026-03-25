@@ -12,6 +12,10 @@ metadata:
       working_directory: /
       environment:
         PYTHONUNBUFFERED: "1"
+        ALPHAXIV_REFRESH_TOKEN: ""
+        ALPHAXIV_CLIENT_ID: ""
+        ALPHAXIV_ACCESS_TOKEN: ""
+        ARXIV_RESEARCH_INTERESTS: "multi-agent systems, reinforcement learning, LLM safety"
     default_schedule:
       type: interval
       interval:
@@ -26,6 +30,10 @@ metadata:
       working_directory: /
       environment:
         PYTHONUNBUFFERED: "1"
+        ALPHAXIV_REFRESH_TOKEN: ""
+        ALPHAXIV_CLIENT_ID: ""
+        ALPHAXIV_ACCESS_TOKEN: ""
+        ARXIV_RESEARCH_INTERESTS: "multi-agent systems, reinforcement learning, LLM safety"
 
 steps:
   - name: Install Python dependencies
@@ -35,7 +43,8 @@ steps:
         "arxiv>=2.1.0" \
         "httpx>=0.24.0" \
         "python-dateutil>=2.8.2" \
-        "pypdf>=5.0.0"
+        "pypdf>=5.0.0" \
+        "mcp>=1.26.0"
 
   - name: Copy application files
     type: files
@@ -50,6 +59,25 @@ steps:
         destination: ./arxiv_foreground.py
       - source: ./arxiv_background.py
         destination: ./arxiv_background.py
+      - source: ./arxiv_config.py
+        destination: ./arxiv_config.py
+      - source: ./alphaxiv_client.py
+        destination: ./alphaxiv_client.py
+      - source: ./alphaxiv_tools.py
+        destination: ./alphaxiv_tools.py
+
+  - name: Authenticate with AlphaXiv
+    type: oauth
+    ui_state_on_show: user_interaction_ready
+    ui_state_on_complete: move_to_background
+    provider: clerk
+    auth_url: "https://www.alphaxiv.org/signin?redirect_url=https%3A%2F%2Fclerk.alphaxiv.org%2Foauth%2Fauthorize%3Fclient_id%3D<TRUFFLE_CLERK_CLIENT_ID>%26response_type%3Dcode%26code_challenge_method%3DS256"
+    state: ""
+    content: |
+      Sign in to AlphaXiv to enable enhanced paper search, semantic search,
+      and PDF question answering.
+
+      This step is optional. Skip it to use basic arXiv search only.
 
   - name: Configure research interests
     type: text

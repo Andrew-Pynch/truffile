@@ -79,6 +79,15 @@ def list_stored_paper_ids() -> list[str]:
     return ids
 
 
+async def delete_paper(*, paper_id: str) -> dict[str, Any]:
+    """Delete a downloaded paper from local storage."""
+    stored = list_stored_paper_ids()
+    if paper_id not in stored:
+        return {"status": "error", "message": f"Paper {paper_id} not found in storage."}
+    _get_paper_path(paper_id, ".md").unlink(missing_ok=True)
+    return {"status": "success", "message": f"Deleted {paper_id}.", "paper_id": paper_id}
+
+
 def _validate_categories(categories: list[str]) -> bool:
     for category in categories:
         prefix = category.split(".", 1)[0] if "." in category else category
@@ -344,11 +353,13 @@ async def download_paper(*, paper_id: str, check_status: bool = False) -> dict[s
 
         status = _conversion_statuses[paper_id]
         status.status = "converting"
-        asyncio.create_task(asyncio.to_thread(_convert_pdf_to_markdown, paper_id, pdf_path))
+        await asyncio.to_thread(_convert_pdf_to_markdown, paper_id, pdf_path)
+
+        md_path = _get_paper_path(paper_id, ".md")
         return {
-            "status": "converting",
-            "message": "Paper downloaded, conversion started",
-            "started_at": status.started_at.isoformat(),
+            "status": "success",
+            "message": "Paper downloaded and converted to markdown",
+            "resource_uri": f"file://{md_path}",
         }
     except StopIteration:
         return {"status": "error", "message": f"Paper {paper_id} not found on arXiv"}
