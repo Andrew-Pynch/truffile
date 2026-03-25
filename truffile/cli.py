@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import httpx
+from grpc import aio as grpc_aio
 from truffile.storage import StorageService
 from truffile.client import TruffleClient, resolve_mdns, NewSessionStatus
 from truffile.schema import validate_app_dir
@@ -616,28 +617,50 @@ async def cmd_deploy(args, storage: StorageService) -> int:
     
     loop.add_signal_handler(signal.SIGINT, handle_sigint)
     
+    deploy_retries = 2
     try:
-        deploy_task = asyncio.create_task(
-            deploy_with_builder(
-                client=client,
-                config=config,
-                app_dir=app_dir,
-                app_type=app_type,
-                device=device,
-                interactive=interactive,
-                spinner_cls=Spinner,
-                scrolling_log_cls=ScrollingLog,
-                info=info,
-                success=success,
-                error=error,
-                color_dim=C.DIM,
-                color_reset=C.RESET,
-                color_bold=C.BOLD,
-                arrow=ARROW,
-                interactive_shell=_interactive_shell,
-            )
-        )
-        return await deploy_task 
+        for deploy_attempt in range(deploy_retries):
+            try:
+                deploy_task = asyncio.create_task(
+                    deploy_with_builder(
+                        client=client,
+                        config=config,
+                        app_dir=app_dir,
+                        app_type=app_type,
+                        device=device,
+                        interactive=interactive,
+                        spinner_cls=Spinner,
+                        scrolling_log_cls=ScrollingLog,
+                        info=info,
+                        success=success,
+                        error=error,
+                        color_dim=C.DIM,
+                        color_reset=C.RESET,
+                        color_bold=C.BOLD,
+                        arrow=ARROW,
+                        interactive_shell=_interactive_shell,
+                    )
+                )
+                return await deploy_task
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                is_last = deploy_attempt >= deploy_retries - 1
+                is_build_step = "failed with exit code" in str(e)
+                if is_last or is_build_step:
+                    raise
+                # Transient failure — clean up and retry
+                print()
+                warn(f"Deploy failed: {e}")
+                if client.app_uuid:
+                    try:
+                        await client.discard()
+                    except Exception:
+                        pass
+                client.app_uuid = None
+                client.access_path = None
+                info("Retrying deploy...")
+                print()
     except asyncio.CancelledError:
         print()
         spinner = Spinner("Discarding build session")
@@ -650,7 +673,10 @@ async def cmd_deploy(args, storage: StorageService) -> int:
                 spinner.fail("Failed to discard")
         return 130
     except Exception as e:
-        error(str(e))
+        if isinstance(e, grpc_aio.AioRpcError):
+            error(f"gRPC error: {e.details()}")
+        else:
+            error(str(e))
         if client.app_uuid:
             spinner = Spinner("Discarding build session")
             spinner.start()

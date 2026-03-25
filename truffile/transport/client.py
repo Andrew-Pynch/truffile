@@ -29,6 +29,12 @@ from truffile.schedule import parse_runtime_policy
 
 GRPC_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
 
+_FINISH_RETRYABLE_PATTERNS = ("TaskGroup", "failed to get tools")
+
+
+def _is_retryable_finish_error(error_msg: str) -> bool:
+    return any(p in error_msg for p in _FINISH_RETRYABLE_PATTERNS)
+
 
 def get_client_metadata() -> ClientMetadata:
     from truffile import __version__
@@ -394,14 +400,33 @@ class TruffleClient:
             else:
                 req.background.runtime_policy.interval.duration.seconds = 60
 
-        resp: FinishBuildSessionResponse = await self.stub.Builder_FinishBuildSession(
-            req, metadata=self._metadata
-        )
-        self.app_uuid = None
-        self.access_path = None
-        if resp.HasField("error"):
-            raise RuntimeError(f"finish failed: {resp.error.error} - {resp.error.details}")
-        return resp
+        retries = 3
+        backoff = 2.0
+        last_error: str | None = None
+
+        for attempt in range(retries):
+            try:
+                resp: FinishBuildSessionResponse = await self.stub.Builder_FinishBuildSession(
+                    req, metadata=self._metadata
+                )
+            except aio.AioRpcError as e:
+                if e.code() in (grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED) and attempt < retries - 1:
+                    await asyncio.sleep(backoff * (attempt + 1))
+                    continue
+                raise
+
+            if resp.HasField("error"):
+                if _is_retryable_finish_error(resp.error.error) and attempt < retries - 1:
+                    last_error = f"{resp.error.error} - {resp.error.details}"
+                    await asyncio.sleep(backoff * (attempt + 1))
+                    continue
+                raise RuntimeError(f"finish failed: {resp.error.error} - {resp.error.details}")
+
+            self.app_uuid = None
+            self.access_path = None
+            return resp
+
+        raise RuntimeError(f"finish failed after {retries} attempts, last error: {last_error}")
 
     async def discard(self) -> FinishBuildSessionResponse | None:
         if not self.stub or not self.app_uuid:
