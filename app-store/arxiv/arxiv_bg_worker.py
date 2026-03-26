@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, timedelta, timezone
 import logging
 from typing import Any
 
 import arxiv
 
-from arxiv_common import get_bg_state_path, get_effective_interests, get_open_questions, parse_research_interests
+from arxiv_common import get_bg_state_path, get_effective_interests, get_open_questions
 from arxiv_config import is_alphaxiv_configured, is_alphaxiv_enrich_enabled
 
 try:

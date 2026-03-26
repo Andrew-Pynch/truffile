@@ -1,15 +1,12 @@
 """Centralized configuration for the ArXiv Truffle app.
 
-On device, AlphaXiv auth comes from the ALPHAXIV_ACCESS_TOKEN env var
-(set by the installer's OAuth step).  The Claude credential-cache helper
-is kept for local dev only (alphaxiv_client.py uses it).
+AlphaXiv auth comes from env vars set by the installer's OAuth step.
 """
 
 from __future__ import annotations
 
 import logging
 import os
-from pathlib import Path
 
 logger = logging.getLogger("arxiv.config")
 
@@ -28,7 +25,6 @@ ALPHAXIV_MCP_URL: str = os.getenv(
 ).strip()
 
 _SENTINELS = frozenset({"none", "", "null", "undefined", "n/a"})
-_CLAUDE_CREDS_PATH = Path.home() / ".claude" / ".credentials.json"
 
 
 def is_alphaxiv_configured() -> bool:

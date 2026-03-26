@@ -4,42 +4,29 @@ Connects to AlphaXiv's MCP server over streamable HTTP transport.
 
 Token lifecycle
 ---------------
-There are two authentication paths:
+The installer's OAuth step (``truffile.yaml`` ``type: oauth``) handles
+the Clerk sign-in flow and injects ``ALPHAXIV_REFRESH_TOKEN``,
+``ALPHAXIV_CLIENT_ID``, and ``ALPHAXIV_ACCESS_TOKEN`` into the process
+environment.
 
-1. **Development (local machine):**
-   ``sync_creds.py`` reads tokens from Claude Code's credential cache
-   (``~/.claude/.credentials.json``), writes them into ``truffile.yaml``
-   env vars, and optionally into ``.env`` for local test scripts.
-   Run ``python sync_creds.py`` before every ``truffile deploy``.
-
-2. **Production (Truffle device):**
-   The installer's OAuth step (``truffile.yaml`` ``type: oauth``) handles
-   the Clerk sign-in flow and injects ``ALPHAXIV_REFRESH_TOKEN``,
-   ``ALPHAXIV_CLIENT_ID``, and ``ALPHAXIV_ACCESS_TOKEN`` into the process
-   environment.  ``~/.claude/.credentials.json`` does not exist on device,
-   so ``ensure_loaded()`` goes straight to ``_load_env_fallback()``.
-
-In both paths, ``ClaudeCredentialAuth`` refreshes expired access tokens
-via Clerk's OIDC token endpoint using the refresh token + client ID.
+``ClaudeCredentialAuth`` refreshes expired access tokens via Clerk's
+OIDC token endpoint using the refresh token + client ID.
 """
 
 from __future__ import annotations
 
-import json
+import contextlib
 import logging
 import os
 import time
 from datetime import timedelta
-from pathlib import Path
 from typing import Any
-
-import contextlib
 
 import httpx
 from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-from arxiv_config import ALPHAXIV_MCP_URL, _CLAUDE_CREDS_PATH, _SENTINELS
+from arxiv_config import ALPHAXIV_MCP_URL, _SENTINELS
 
 logger = logging.getLogger("arxiv.alphaxiv_client")
 
@@ -55,15 +42,12 @@ class ClaudeCredentialAuth:
     Not an httpx.Auth subclass — tokens are passed as plain headers to the
     MCP transport to avoid interfering with SSE response streaming.
 
-    Resolution order:
-    1. Claude credential cache  (~/.claude/.credentials.json → mcpOAuth → alphaxiv|*)
-    2. ALPHAXIV_ACCESS_TOKEN env var  (no refresh capability)
+    Credentials are loaded from environment variables:
+    - ALPHAXIV_REFRESH_TOKEN + ALPHAXIV_CLIENT_ID (preferred, enables self-refresh)
+    - ALPHAXIV_ACCESS_TOKEN (legacy fallback, no refresh capability)
     """
 
-    def __init__(self, credentials_path: Path | None = None) -> None:
-        self._creds_path = credentials_path or _CLAUDE_CREDS_PATH
-        self._creds_key: str | None = None  # e.g. "alphaxiv|d940b2c43ce9ee4d"
-
+    def __init__(self) -> None:
         self._access_token: str | None = None
         self._refresh_token: str | None = None
         self._expires_at: float = 0.0  # unix seconds
@@ -76,43 +60,12 @@ class ClaudeCredentialAuth:
 
     # ---- credential loading ------------------------------------------------
 
-    def _load_cached(self) -> bool:
-        """Load tokens from Claude credential cache.  Returns True if found."""
-        if not self._creds_path.exists():
-            return False
-        try:
-            data = json.loads(self._creds_path.read_text(encoding="utf-8"))
-            for key, entry in data.get("mcpOAuth", {}).items():
-                if not key.startswith("alphaxiv|"):
-                    continue
-                access = entry.get("accessToken", "")
-                if not access:
-                    continue
-                self._creds_key = key
-                self._access_token = access
-                self._refresh_token = entry.get("refreshToken")
-                # expiresAt is milliseconds in the cache
-                expires_ms = entry.get("expiresAt", 0)
-                self._expires_at = expires_ms / 1000.0 if expires_ms else 0.0
-                self._client_id = entry.get("clientId")
-                ds = entry.get("discoveryState") or {}
-                self._auth_server_url = ds.get("authorizationServerUrl")
-                logger.debug(
-                    "Loaded AlphaXiv credentials from cache (key=%s, expires=%s)",
-                    key,
-                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self._expires_at)),
-                )
-                return True
-        except Exception as exc:
-            logger.warning("Failed to read Claude credential cache: %s", exc)
-        return False
+    def _load_from_env(self) -> bool:
+        """Load credentials from environment variables.
 
-    def _load_env_fallback(self) -> bool:
-        """Fall back to env vars.
-
-        Preferred path: ALPHAXIV_REFRESH_TOKEN (+ CLIENT_ID, AUTH_SERVER_URL)
-        which enables self-refresh on device.  Legacy path: ALPHAXIV_ACCESS_TOKEN
-        (static, no refresh — token dies in ~60s).
+        Preferred: ALPHAXIV_REFRESH_TOKEN (+ CLIENT_ID, AUTH_SERVER_URL)
+        which enables self-refresh.  Fallback: ALPHAXIV_ACCESS_TOKEN
+        (static, no refresh).
         """
         # --- preferred: refresh-token path ---
         refresh = os.getenv("ALPHAXIV_REFRESH_TOKEN", "").strip()
@@ -123,7 +76,7 @@ class ClaudeCredentialAuth:
                 os.getenv("ALPHAXIV_AUTH_SERVER_URL", "").strip()
                 or "https://clerk.alphaxiv.org"
             )
-            # Use access token from env if available (e.g. synced by sync_creds.py)
+            # Use access token from env if available
             access = os.getenv("ALPHAXIV_ACCESS_TOKEN", "").strip()
             self._access_token = access if access.lower() not in _SENTINELS else None
             self._expires_at = 0.0
@@ -198,42 +151,18 @@ class ClaudeCredentialAuth:
                 else:
                     self._expires_at = 0.0
 
-                # Persist refreshed tokens back to Claude credential cache
-                self._write_back_to_cache()
                 logger.debug("Token refreshed successfully (expires_in=%s)", expires_in)
                 return True
         except Exception as exc:
             logger.warning("Token refresh error: %s", exc)
             return False
 
-    def _write_back_to_cache(self) -> None:
-        """Update the credential cache with refreshed tokens."""
-        if not self._creds_key or not self._creds_path.exists():
-            return
-        try:
-            data = json.loads(self._creds_path.read_text(encoding="utf-8"))
-            entry = data.get("mcpOAuth", {}).get(self._creds_key)
-            if entry is None:
-                return
-            entry["accessToken"] = self._access_token
-            if self._refresh_token:
-                entry["refreshToken"] = self._refresh_token
-            entry["expiresAt"] = int(self._expires_at * 1000) if self._expires_at else 0
-            self._creds_path.write_text(
-                json.dumps(data, separators=(",", ":")),
-                encoding="utf-8",
-            )
-        except Exception as exc:
-            logger.debug("Failed to write back to credential cache: %s", exc)
-
     # ---- public interface -----------------------------------------------------
 
     def ensure_loaded(self) -> None:
         """Load credentials if not already loaded."""
         if not self._loaded:
-            # On device, ~/.claude/.credentials.json doesn't exist.
-            # Always use env vars (populated by sync_creds.py / YAML environment).
-            self._loaded = self._load_env_fallback()
+            self._loaded = self._load_from_env()
             if not self._loaded:
                 self.is_healthy = False
 
@@ -277,13 +206,9 @@ class AlphaXivClient:
             print(result)
     """
 
-    def __init__(
-        self,
-        url: str = ALPHAXIV_MCP_URL,
-        credentials_path: Path | None = None,
-    ) -> None:
+    def __init__(self, url: str = ALPHAXIV_MCP_URL) -> None:
         self._url = url
-        self._auth = ClaudeCredentialAuth(credentials_path)
+        self._auth = ClaudeCredentialAuth()
         self._session: ClientSession | None = None
         self._exit_stack: contextlib.AsyncExitStack | None = None
 

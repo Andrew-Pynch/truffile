@@ -97,14 +97,6 @@ def _validate_categories(categories: list[str]) -> bool:
     return True
 
 
-def _optimize_query(query: str) -> str:
-    if any(field in query for field in ["ti:", "au:", "abs:", "cat:", "AND", "OR", "ANDNOT"]):
-        return query
-    if query.startswith('"') and query.endswith('"'):
-        return query
-    return query
-
-
 def _parse_arxiv_atom_response(xml_text: str) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     try:
@@ -243,7 +235,7 @@ async def search_papers(
 
         if date_from or date_to:
             results = await _raw_arxiv_search(
-                query=_optimize_query(query) if query.strip() else "",
+                query=query if query.strip() else "",
                 max_results=bounded_max,
                 sort_by=sort_by,
                 date_from=date_from,
@@ -255,7 +247,7 @@ async def search_papers(
         client = arxiv.Client()
         query_parts: list[str] = []
         if query.strip():
-            query_parts.append(f"({_optimize_query(query)})")
+            query_parts.append(f"({query})")
         if categories:
             query_parts.append("(" + " OR ".join(f"cat:{cat}" for cat in categories) + ")")
         if not query_parts:
