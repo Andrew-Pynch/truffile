@@ -6,3 +6,5 @@ dist
 whatsapp/
 docs-repo/
 .env
+truffile/app_runtime/
+truffle/
